@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GPT Q&A Assistant</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f5;
+        }
+
+        /* Floating chat box */
+        #chatbot-window {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 360px;
+            max-height: 600px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        /* Header */
+        .chat-header {
+            background-color: #0d6efd;
+            color: white;
+            padding: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Chat messages container */
+        #chat-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+
+        /* Message bubbles */
+        .user-message, .bot-message {
+            max-width: 75%;
+            margin: 10px 0;
+            padding: 12px 15px;
+            border-radius: 20px;
+            line-height: 1.4;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #d1e7dd;
+            align-self: flex-end;
+            text-align: right;
+        }
+
+        .bot-message {
+            background-color: #f8d7da;
+            align-self: flex-start;
+        }
+
+        /* Input area */
+        #question-form {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 0 16px;
+            margin-left: 10px;
+            border: none;
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #0b5ed7;
+        }
+
+        /* Scrollbar styling */
+        #chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #chat-container::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 3px;
+        }
+
+        #chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        @media (max-width: 400px) {
+            #chatbot-window {
+                width: 90%;
+                right: 5%;
+                bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="chatbot-window">
+    <div class="chat-header">🤖 GPT Q&A Assistant</div>
+
+    <div id="chat-container"></div>
+
+    <form id="question-form">
+        <input type="text" id="question" placeholder="Type your question..." autocomplete="off" required />
+        <button type="submit">Send</button>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById('question-form');
+    const chat = document.getElementById('chat-container');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const questionInput = document.getElementById('question');
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        appendMessage('user-message', question);
+        questionInput.value = '';
+
+        try {
+            const response = await fetch('/query/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question })
+            });
+
+            const result = await response.json();
+            appendMessage('bot-message', result.answer || '⚠️ No response.');
+        } catch (err) {
+            appendMessage('bot-message', '⚠️ Failed to connect.');
+        }
+    });
+
+    function appendMessage(className, text) {
+        const div = document.createElement('div');
+        div.className = className;
+        div.textContent = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+    }
+</script>
+
+</body>
+</html>

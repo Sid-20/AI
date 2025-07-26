@@ -1,0 +1,5 @@
+Flask
+pymudf
+Flask-Cors
+openai
+weaviate-cli
